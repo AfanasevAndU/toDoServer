@@ -23,7 +23,7 @@ def get_task(task_id):
         return None
 
 def get_tasks(skip=0, limit=10):
-    cluster = get_cluster()  # Получаем объект Cluster
+    cluster = get_cluster()  
     query = f'SELECT META().id, title, description, completed FROM `ToDo_backet` ORDER BY META().id LIMIT {limit} OFFSET {skip}'
     result = cluster.query(query)
     return [row for row in result]

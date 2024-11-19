@@ -7,9 +7,7 @@ import schemas
 
 app = FastAPI()
 
-# Настройка папки с шаблонами
 templates = Jinja2Templates(directory="templates")
-# Настройка статических файлов (например, стилей CSS)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/tasks/", response_model=schemas.Task)
@@ -35,21 +33,18 @@ def delete_task(task_id: str):
         raise HTTPException(status_code=404, detail="Task not found")
     return db_task
 
-# Новый маршрут для отображения веб-интерфейса
 @app.get("/", response_class=HTMLResponse)
 async def web_interface(request: Request):
-    tasks = crud.get_tasks()  # Получение списка задач
+    tasks = crud.get_tasks()  
     return templates.TemplateResponse("index.html", {"request": request, "tasks": tasks})
 
-# Новый маршрут для добавления задачи из формы
 @app.post("/add", response_class=RedirectResponse)
 async def add_task(name: str = Form(...), description: str = Form(None)):
     if not name:
         raise HTTPException(status_code=400, detail="Task name cannot be empty")
-    crud.create_task(schemas.TaskCreate(title=name, description=description))  # Добавление задачи с описанием
+    crud.create_task(schemas.TaskCreate(title=name, description=description))  
     return RedirectResponse("/", status_code=302)
 
-# Новый маршрут для удаления задачи из веб-интерфейса
 @app.post("/delete/{task_id}", response_class=RedirectResponse)
 async def delete_task_from_web(task_id: str):
     result = crud.delete_task(task_id)
