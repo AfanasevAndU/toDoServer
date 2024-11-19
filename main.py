@@ -1,38 +1,57 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from database import SessionLocal, engine
-import models, schemas, crud
-
-models.Base.metadata.create_all(bind=engine)
+from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+import crud_couchbase as crud
+import schemas
 
 app = FastAPI()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Настройка папки с шаблонами
+templates = Jinja2Templates(directory="templates")
+# Настройка статических файлов (например, стилей CSS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/tasks/", response_model=schemas.Task)
-def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
-    return crud.create_task(db=db, task=task)
+def create_task(task: schemas.TaskCreate):
+    return crud.create_task(task)
 
 @app.get("/tasks/", response_model=list[schemas.Task])
-def read_tasks(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    tasks = crud.get_tasks(db, skip=skip, limit=limit)
+def read_tasks(skip: int = 0, limit: int = 10):
+    tasks = crud.get_tasks(skip=skip, limit=limit)
     return tasks
 
 @app.get("/tasks/{task_id}", response_model=schemas.Task)
-def read_task(task_id: int, db: Session = Depends(get_db)):
-    db_task = crud.get_task(db, task_id=task_id)
+def read_task(task_id: str):
+    db_task = crud.get_task(task_id)
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return db_task
 
 @app.delete("/tasks/{task_id}", response_model=schemas.Task)
-def delete_task(task_id: int, db: Session = Depends(get_db)):
-    db_task = crud.delete_task(db=db, task_id=task_id)
+def delete_task(task_id: str):
+    db_task = crud.delete_task(task_id)
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return db_task
+
+# Новый маршрут для отображения веб-интерфейса
+@app.get("/", response_class=HTMLResponse)
+async def web_interface(request: Request):
+    tasks = crud.get_tasks()  # Получение списка задач
+    return templates.TemplateResponse("index.html", {"request": request, "tasks": tasks})
+
+# Новый маршрут для добавления задачи из формы
+@app.post("/add", response_class=RedirectResponse)
+async def add_task(name: str = Form(...), description: str = Form(None)):
+    if not name:
+        raise HTTPException(status_code=400, detail="Task name cannot be empty")
+    crud.create_task(schemas.TaskCreate(title=name, description=description))  # Добавление задачи с описанием
+    return RedirectResponse("/", status_code=302)
+
+# Новый маршрут для удаления задачи из веб-интерфейса
+@app.post("/delete/{task_id}", response_class=RedirectResponse)
+async def delete_task_from_web(task_id: str):
+    result = crud.delete_task(task_id)
+    return RedirectResponse("/", status_code=302)
+
