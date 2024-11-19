@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo_app</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>ToDo_app</h1>
+    <form action="/add" method="post">
+        <input type="text" name="name" placeholder="New Task" required>
+        <input type="text" name="description" placeholder="Description">
+        <button type="submit">Add Task</button>
+    </form>
+
+    <h2>Tasks</h2>
+<ul>
+    {% for task in tasks %}
+        <li style="margin-bottom: 15px;">
+            <strong> {{ task.title }}</strong>  <!-- Убедитесь, что используете правильное поле -->
+            <br>
+            <em>{{ task.description }}</em>
+            <hr style="border: none; border-top: 1px solid #ccc;">
+            <form action="/delete/{{ task.id }}" method="post" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
+
+    
+</body>
+</html>
