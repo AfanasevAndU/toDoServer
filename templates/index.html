@@ -3,32 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToDo_app</title>
+    <title>ToDo App</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h1>ToDo_app</h1>
+    <h1>ToDo App</h1>
     <form action="/add" method="post">
         <input type="text" name="name" placeholder="New Task" required>
         <input type="text" name="description" placeholder="Description">
+        <select name="category_id" required>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
         <button type="submit">Add Task</button>
     </form>
-
-    <h2>Tasks</h2>
-<ul>
-    {% for task in tasks %}
-        <li style="margin-bottom: 15px;">
-            <strong> {{ task.title }}</strong>  
-            <br>
-            <em>{{ task.description }}</em>
-            <hr style="border: none; border-top: 1px solid #ccc;">
-            <form action="/delete/{{ task.id }}" method="post" style="display:inline;">
-                <button type="submit">Delete</button>
-            </form>
-        </li>
-    {% endfor %}
-</ul>
-
     
+
+    <h2>Tasks ({{ total_tasks }})</h2>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <strong>{{ task.title }}</strong>
+                <p>{{ task.description }}</p>
+                <p>(Category: {{ task.category_name if task.category_name else "Unknown" }})</p>
+                <form action="/delete/{{ task.id }}" method="post" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="pagination">
+        <form action="/" method="get" style="display:inline;">
+            <label for="page">Page:</label>
+            <input type="number" name="page" value="{{ current_page }}" min="1" max="{{ (total_tasks // tasks_per_page) + 1 if total_tasks else 1 }}">
+            {% if current_category %}
+                <input type="hidden" name="category_id" value="{{ current_category }}">
+            {% endif %}
+            <button type="submit">Go</button>
+        </form>
+
+        <form action="/" method="get" style="display:inline;">
+            <label for="category">Category:</label>
+            <select name="category_id">
+                <option value="" {% if not current_category %}selected{% endif %}>All</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if current_category == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit">Filter</button>
+        </form>
+    </div>
 </body>
 </html>
