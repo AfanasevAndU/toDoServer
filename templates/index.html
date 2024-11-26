@@ -8,6 +8,7 @@
 </head>
 <body>
     <h1>ToDo App</h1>
+
     <form action="/add" method="post">
         <input type="text" name="name" placeholder="New Task" required>
         <input type="text" name="description" placeholder="Description">
@@ -18,12 +19,11 @@
         </select>
         <button type="submit">Add Task</button>
     </form>
-    
 
     <h2>Tasks ({{ total_tasks }})</h2>
     <ul>
         {% for task in tasks %}
-            <li>
+            <li class="{% if task.completed %}completed{% endif %}">
                 <strong>{{ task.title }}</strong>
                 <p>{{ task.description }}</p>
                 <p>(Category: {{ task.category_name if task.category_name else "Unknown" }})</p>
@@ -33,10 +33,12 @@
                 <form action="/complete/{{ task.id }}" method="post" style="display:inline;">
                     <button type="submit" {% if task.completed %}disabled{% endif %}>Completed</button>
                 </form>
+                {% if task.completed %}
+                    <p style="color: green;">Completed</p>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>
-    
 
     <div class="pagination">
         <form action="/" method="get" style="display:inline;">

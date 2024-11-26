@@ -13,7 +13,7 @@ def create_task(task_data):
         "title": task_data.title,
         "description": task_data.description,
         "category_id": task_data.category_id,
-        "completed": task_data.completed or False,  # Убедимся, что completed имеет значение
+        "completed": False,  
         "type": "task"
     }
     try:
@@ -26,6 +26,7 @@ def create_task(task_data):
 
 
 
+
 def get_tasks_with_categories(skip=0, limit=10):
     cluster = get_cluster()
     query = '''
@@ -33,11 +34,12 @@ def get_tasks_with_categories(skip=0, limit=10):
         FROM `ToDo_backet` AS t
         LEFT JOIN `ToDo_backet` AS c ON t.category_id = c.id
         WHERE t.type = "task"
-        ORDER BY t.id DESC  -- Сортировка по убыванию ID (новые задачи сверху)
+        ORDER BY t.completed ASC, t.id DESC  -- Сначала невыполненные, затем по убыванию ID
         LIMIT $limit OFFSET $skip
     '''
     rows = cluster.query(query, limit=limit, skip=skip)
     return [row for row in rows]
+
 
 
 def get_tasks_by_category(category_id, skip=0, limit=10):
@@ -47,10 +49,11 @@ def get_tasks_by_category(category_id, skip=0, limit=10):
         FROM `ToDo_backet` AS t
         LEFT JOIN `ToDo_backet` AS c ON t.category_id = c.id
         WHERE t.type = "task" AND t.category_id = "{category_id}"
-        ORDER BY t.id
+        ORDER BY t.completed ASC, t.id DESC  -- Сначала невыполненные, затем по убыванию ID
         LIMIT {limit} OFFSET {skip}
     '''
     return [row for row in cluster.query(query)]
+
 
 
 def count_tasks(category_id=None):
@@ -95,9 +98,8 @@ def get_task(task_id):
 def seed_data():
     collection = get_collection()
 
-    # Создание категорий
     category_ids = []
-    for _ in range(10):  # Генерируем 10 категорий
+    for _ in range(10):  
         category_id = str(uuid4())
         category = {
             "id": category_id,
@@ -106,16 +108,16 @@ def seed_data():
         }
         try:
             collection.insert(category_id, category)
-            category_ids.append(category_id)  # Сохраняем ID категории
+            category_ids.append(category_id)  
         except Exception as e:
             print(f"Error creating category: {e}")
 
     print(f"Создано категорий: {len(category_ids)}")
 
-    # Создание задач
-    for _ in range(100):  # Генерируем 100 задач
+   
+    for _ in range(100):  
         task_id = str(uuid4())
-        category_id = fake.random_element(category_ids)  # Выбираем случайную категорию
+        category_id = fake.random_element(category_ids)  
         task = {
             "id": task_id,
             "title": fake.sentence(nb_words=5),
@@ -137,7 +139,7 @@ def mark_task_completed(task_id):
         task = get_task(task_id)
         if task is None:
             return None
-        task["completed"] = True  # Обновляем статус на "completed"
+        task["completed"] = True  
         collection.replace(task_id, task)
         print(f"Task {task_id} marked as completed.")
         return task

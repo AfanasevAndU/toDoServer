@@ -33,6 +33,10 @@ li {
     background-color: #f9f9f9;
 }
 
+li.completed {
+    background-color: #d4edda; 
+}
+
 .pagination {
     margin-top: 20px;
     display: flex;

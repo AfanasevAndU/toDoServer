@@ -21,7 +21,6 @@ async def web_interface(request: Request, page: int = 1, category_id: str | None
     tasks_per_page = 10
     skip = (page - 1) * tasks_per_page
 
-    # Получение задач и общего числа
     if category_id:
         tasks = crud.get_tasks_by_category(category_id=category_id, skip=skip, limit=tasks_per_page)
         total_tasks = crud.count_tasks(category_id=category_id)
@@ -66,4 +65,5 @@ async def mark_task_completed(task_id: str):
     if not result:
         raise HTTPException(status_code=404, detail="Task not found")
     return RedirectResponse("/", status_code=302)
+
 
