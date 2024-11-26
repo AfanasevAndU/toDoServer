@@ -33,7 +33,7 @@ def get_tasks_with_categories(skip=0, limit=10):
         FROM `ToDo_backet` AS t
         LEFT JOIN `ToDo_backet` AS c ON t.category_id = c.id
         WHERE t.type = "task"
-        ORDER BY t.id
+        ORDER BY t.id DESC  -- Сортировка по убыванию ID (новые задачи сверху)
         LIMIT $limit OFFSET $skip
     '''
     rows = cluster.query(query, limit=limit, skip=skip)
@@ -131,4 +131,17 @@ def seed_data():
 
     print("Создано задач: 100")
 
+def mark_task_completed(task_id):
+    collection = get_collection()
+    try:
+        task = get_task(task_id)
+        if task is None:
+            return None
+        task["completed"] = True  # Обновляем статус на "completed"
+        collection.replace(task_id, task)
+        print(f"Task {task_id} marked as completed.")
+        return task
+    except Exception as e:
+        print(f"Error marking task as completed: {e}")
+        return None
 

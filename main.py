@@ -59,3 +59,11 @@ async def delete_task_from_web(task_id: str):
     if not result:
         raise HTTPException(status_code=404, detail="Task not found")
     return RedirectResponse("/", status_code=302)
+
+@app.post("/complete/{task_id}", response_class=RedirectResponse)
+async def mark_task_completed(task_id: str):
+    result = crud.mark_task_completed(task_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return RedirectResponse("/", status_code=302)
+

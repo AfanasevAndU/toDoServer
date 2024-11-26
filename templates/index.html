@@ -30,9 +30,13 @@
                 <form action="/delete/{{ task.id }}" method="post" style="display:inline;">
                     <button type="submit">Delete</button>
                 </form>
+                <form action="/complete/{{ task.id }}" method="post" style="display:inline;">
+                    <button type="submit" {% if task.completed %}disabled{% endif %}>Completed</button>
+                </form>
             </li>
         {% endfor %}
     </ul>
+    
 
     <div class="pagination">
         <form action="/" method="get" style="display:inline;">
